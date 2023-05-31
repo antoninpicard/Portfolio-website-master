@@ -3,7 +3,7 @@
     "license": "MIT",
     "scripts": {
         "start": "node server/index.ts",
-        "build": "react-scripts build",
+        "build": "webpack --config ./bundler/webpack.prod.js",
         "dev": "webpack serve --config ./bundler/webpack.dev.js"
     },
     "dependencies": {
