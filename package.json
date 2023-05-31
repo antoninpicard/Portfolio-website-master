@@ -1,6 +1,6 @@
 {
     "repository": "#",
-    "license": "MIT",
+    "license": "UNLICENSED",
     "scripts": {
         "start": "node server/index.ts",
         "build": "webpack --config ./bundler/webpack.prod.js",
