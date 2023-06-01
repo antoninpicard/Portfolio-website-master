@@ -245,7 +245,7 @@ const LoadingScreen: React.FC<LoadingProps> = () => {
                             <br />
                             <b>
                                 <p style={styles.warning}>
-                                    ATTENTION: C'est expérience est mieux sur
+                                    ATTENTION: Cette expérience est mieux sur
                                 </p>
                                 <p style={styles.warning}>
                                     un ORDINATEUR.
