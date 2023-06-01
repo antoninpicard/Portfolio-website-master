@@ -3,7 +3,7 @@ import React, { useCallback, useEffect, useRef, useState } from 'react';
 import { motion } from 'framer-motion';
 import UIEventBus from '../EventBus';
 
-const HELP_TEXT = 'Cliquez quelques part pour commencer';
+const HELP_TEXT = 'Cliquez quelque part pour commencer';
 
 type HelpPromptProps = {};
 
