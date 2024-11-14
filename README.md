@@ -1,12 +1,9 @@
+# Origami Instructions
 
-
-   -1-               -2-            -3-               -4-
+## Step 1               Step 2              Step 3              Step 4
  ________           ____     \.  in progress
 |        |         /\.  |     \`\. ________       \
 |        |        / .'`\|      \  `\.      |       \\.    ./|
 |        |       /.'_,-'        \    `\.   |        \ `\./' |    Rotate
 |________|      /,-'             `--... `\.|         \.. `\.|
                                        `````            `````
-Fold 2 edges         Rabbits fold the long flap while
-to center            mountain folding the single layer
-
