@@ -1,19 +1,25 @@
-# antoninpicard.com
+# Portfolio 3D Interactif
 
-## À propos
-Bienvenue sur mon portfolio personnel, une vitrine de mes compétences et réalisations en développement web. Ce site est construit avec des technologies modernes pour offrir une expérience utilisateur optimale.
+[![Déploiement Vercel](https://img.shields.io/badge/Vercel-Live%20Demo-black?style=for-the-badge&logo=vercel)](https://antoninpicard-inner.vercel.app/)
+[![GitHub](https://img.shields.io/badge/GitHub-Repo-black?style=for-the-badge&logo=github)](https://github.com/antoninpicard/Portfolio-inner-site)
 
-## Technologies Utilisées
-- React.js
+## 🎨 À propos
+Bienvenue sur mon portfolio 3D interactif, une expérience immersive présentant mes compétences et réalisations en développement web. Ce site combine des technologies modernes de rendu 3D et de développement web pour créer une expérience utilisateur unique.
+
+## 🚀 Technologies Utilisées
+- React
+- Three.js
 - TypeScript
-- Styled Components
-- Autres dépendances (voir package.json)
+- Webpack
+- GSAP (Animations)
+- Framer Motion
 
-## Installation
+## 🛠️ Installation
 
-1. Clonez le dépôt :
+1. Clonez le repository :
 ```bash
-git clone https://github.com/antoninpicard/Portfolio-website-master.git
+git clone https://github.com/antoninpicard/Portfolio-inner-site.git
+cd Portfolio-inner-site
 ```
 
 2. Installez les dépendances :
@@ -23,22 +29,20 @@ npm install
 
 3. Lancez le serveur de développement :
 ```bash
-npm start
+npm run dev
 ```
 
-## Structure du Projet
-```
-src/
-  ├── Application/    # Composants principaux
-  ├── assets/         # Ressources statiques
-  └── styles/         # Styles globaux
-```
+## 🔧 Scripts Disponibles
+- `npm run dev` - Lance le serveur de développement
+- `npm run build` - Crée une version de production
+- `npm start` - Lance le serveur de production
 
-## Contact
-Pour toute question ou opportunité de collaboration, n'hésitez pas à me contacter.
+## 🌐 Déploiement
+Le site est actuellement déployé sur Vercel et accessible à l'adresse :
+[antoninpicard-inner.vercel.app](https://antoninpicard-inner.vercel.app/)
 
-## Licence
-Ce projet est sous licence MIT.
+## 📝 License
+UNLICENSED - Voir le fichier [LICENSE](LICENSE) pour plus de détails.
 
 ---
 Made with ❤️ by Antonin
