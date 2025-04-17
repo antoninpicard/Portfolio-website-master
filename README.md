@@ -1,6 +1,6 @@
 # Portfolio 3D Interactif
 
-[![Déploiement Vercel](https://img.shields.io/badge/Vercel-Live%20Demo-black?style=for-the-badge&logo=vercel)](https://antoninpicard-inner.vercel.app/)
+[![Déploiement Vercel](https://img.shields.io/badge/Vercel-Live%20Demo-black?style=for-the-badge&logo=vercel)](https://antoninpicard.com)
 [![GitHub](https://img.shields.io/badge/GitHub-Repo-black?style=for-the-badge&logo=github)](https://github.com/antoninpicard/Portfolio-inner-site)
 
 ## 🎨 À propos
