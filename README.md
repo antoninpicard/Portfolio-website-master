@@ -39,7 +39,9 @@ npm run dev
 
 ## 🌐 Déploiement
 Le site est actuellement déployé sur Vercel et accessible à l'adresse :
-[antoninpicard-inner.vercel.app](https://antoninpicard-inner.vercel.app/)
+[antoninpicard.com](https://antoninpicard.com)
+ou encore pour le inner-site :
+[antoninpicard-inner.vercel.app](https://antoninpicard-inner.vercel.app)
 
 ## 📝 License
 UNLICENSED - Voir le fichier [LICENSE](LICENSE) pour plus de détails.
