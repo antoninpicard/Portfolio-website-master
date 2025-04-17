@@ -290,7 +290,7 @@ const LoadingScreen: React.FC<LoadingProps> = () => {
                             <a
                                 style={styles.link}
                                 href={
-                                    'https://github.com/henryjeff/portfolio-website/issues/6'
+                                    'https://github.com/antoninpicard/Portfolio-website-master'
                                 }
                             >
                                 bug in firefox
