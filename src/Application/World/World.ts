@@ -1,3 +1,4 @@
+import * as THREE from 'three';
 import Application from '../Application';
 import Resources from '../Utils/Resources';
 import ComputerSetup from './Computer';
@@ -8,6 +9,7 @@ import CoffeeSteam from './CoffeeSteam';
 import Cursor from './Cursor';
 import Hitboxes from './Hitboxes';
 import AudioManager from '../Audio/AudioManager';
+import MovingObject from './MovingObject';
 export default class World {
     application: Application;
     scene: THREE.Scene;
@@ -21,6 +23,7 @@ export default class World {
     coffeeSteam: CoffeeSteam;
     cursor: Cursor;
     audioManager: AudioManager;
+    movingObject: MovingObject;
 
     constructor() {
         this.application = new Application();
@@ -35,6 +38,7 @@ export default class World {
             this.monitorScreen = new MonitorScreen();
             this.coffeeSteam = new CoffeeSteam();
             this.audioManager = new AudioManager();
+            this.movingObject = new MovingObject();
             // const hb = new Hitboxes();
             // this.cursor = new Cursor();
         });
@@ -45,5 +49,6 @@ export default class World {
         if (this.environment) this.environment.update();
         if (this.coffeeSteam) this.coffeeSteam.update();
         if (this.audioManager) this.audioManager.update();
+        if (this.movingObject) this.movingObject.update();
     }
 }
