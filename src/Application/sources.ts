@@ -29,16 +29,9 @@ const sources: Resource[] = [
         type: 'texture',
         path: 'models/Decor/baked_decor_modified.jpg',
     },
-    {
-        name: 'monitorSmudgeTexture',
-        type: 'texture',
-        path: 'textures/monitor/layers/compressed/smudges.jpg',
-    },
-    {
-        name: 'monitorShadowTexture',
-        type: 'texture',
-        path: 'textures/monitor/layers/compressed/shadow-compressed.png',
-    },
+    // Les textures de moniteur ont été supprimées pour améliorer les performances
+    
+    // Réduction des fichiers audio pour alléger le site
     {
         name: 'mouseDown',
         type: 'audio',
@@ -49,51 +42,18 @@ const sources: Resource[] = [
         type: 'audio',
         path: 'audio/mouse/mouse_up.mp3',
     },
+    // Utilisation d'un seul fichier audio pour le clavier au lieu de six
     {
-        name: 'keyboardKeydown1',
+        name: 'keyboardKeydown',
         type: 'audio',
         path: 'audio/keyboard/key_1.mp3',
-    },
-    {
-        name: 'keyboardKeydown2',
-        type: 'audio',
-        path: 'audio/keyboard/key_2.mp3',
-    },
-    {
-        name: 'keyboardKeydown3',
-        type: 'audio',
-        path: 'audio/keyboard/key_3.mp3',
-    },
-    {
-        name: 'keyboardKeydown4',
-        type: 'audio',
-        path: 'audio/keyboard/key_4.mp3',
-    },
-    {
-        name: 'keyboardKeydown5',
-        type: 'audio',
-        path: 'audio/keyboard/key_5.mp3',
-    },
-    {
-        name: 'keyboardKeydown6',
-        type: 'audio',
-        path: 'audio/keyboard/key_6.mp3',
     },
     {
         name: 'startup',
         type: 'audio',
         path: 'audio/startup/startup.mp3',
-    },
-    {
-        name: 'office',
-        type: 'audio',
-        path: 'audio/atmosphere/office.mp3',
-    },
-    {
-        name: 'ccType',
-        type: 'audio',
-        path: 'audio/cc/type.mp3',
-    },
+    }
+    // Les sons d'ambiance ont été supprimés pour alléger le site
 ];
 
 export default sources;

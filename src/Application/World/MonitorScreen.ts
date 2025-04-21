@@ -15,6 +15,12 @@ const IFRAME_SIZE = {
     h: SCREEN_SIZE.h - IFRAME_PADDING,
 };
 
+interface EnclosingPlane {
+    size: THREE.Vector2;
+    position: THREE.Vector3;
+    rotation: THREE.Euler;
+}
+
 export default class MonitorScreen extends EventEmitter {
     application: Application;
     scene: THREE.Scene;
@@ -32,7 +38,7 @@ export default class MonitorScreen extends EventEmitter {
     inComputer: boolean;
     mouseClickInProgress: boolean;
     dimmingPlane: THREE.Mesh;
-    videoTextures: { [key in string]: THREE.VideoTexture };
+    // Les textures vidéo ont été supprimées pour améliorer les performances
 
     constructor() {
         super();
@@ -45,16 +51,15 @@ export default class MonitorScreen extends EventEmitter {
         this.camera = this.application.camera;
         this.position = new THREE.Vector3(0, 950, 255);
         this.rotation = new THREE.Euler(-3 * THREE.MathUtils.DEG2RAD, 0, 0);
-        this.videoTextures = {};
+        // Les textures vidéo ont été supprimées pour améliorer les performances
         this.mouseClickInProgress = false;
         this.shouldLeaveMonitor = false;
+        this.dimmingPlane = new THREE.Mesh(); // Initialize with empty mesh
 
         // Create screen
         this.initializeScreenEvents();
         this.createIframe();
-        const maxOffset = this.createTextureLayers();
-        this.createEnclosingPlanes(maxOffset);
-        this.createPerspectiveDimmer(maxOffset);
+        // Nous avons supprimé les couches de texture pour éviter les filtres sur l'écran
     }
 
     initializeScreenEvents() {
@@ -255,85 +260,21 @@ export default class MonitorScreen extends EventEmitter {
     }
 
     /**
-     * Creates the texture layers for the computer screen
-     * @returns the maximum offset of the texture layers
+     * Méthode vide pour maintenir la compatibilité avec le reste du code
+     * Les filtres et textures ont été supprimés
+     * @returns 0 pour indiquer qu'il n'y a pas de décalage
      */
     createTextureLayers() {
-        const textures = this.resources.items.texture;
-
-        this.getVideoTextures('video-1');
-        this.getVideoTextures('video-2');
-
-        // Scale factor to multiply depth offset by
-        const scaleFactor = 4;
-
-        // Construct the texture layers
-        const layers = {
-            smudge: {
-                texture: textures.monitorSmudgeTexture,
-                blending: THREE.AdditiveBlending,
-                opacity: 0.12,
-                offset: 24,
-            },
-            innerShadow: {
-                texture: textures.monitorShadowTexture,
-                blending: THREE.NormalBlending,
-                opacity: 1,
-                offset: 5,
-            },
-            video: {
-                texture: this.videoTextures['video-1'],
-                blending: THREE.AdditiveBlending,
-                opacity: 0.5,
-                offset: 10,
-            },
-            video2: {
-                texture: this.videoTextures['video-2'],
-                blending: THREE.AdditiveBlending,
-                opacity: 0.1,
-                offset: 15,
-            },
-        };
-
-        // Declare max offset
-        let maxOffset = -1;
-
-        // Add the texture layers to the screen
-        for (const [_, layer] of Object.entries(layers)) {
-            const offset = layer.offset * scaleFactor;
-            this.addTextureLayer(
-                layer.texture,
-                layer.blending,
-                layer.opacity,
-                offset
-            );
-            // Calculate the max offset
-            if (offset > maxOffset) maxOffset = offset;
-        }
-
-        // Return the max offset
-        return maxOffset;
-    }
-
-    getVideoTextures(videoId: string) {
-        const video = document.getElementById(videoId);
-        if (!video) {
-            setTimeout(() => {
-                this.getVideoTextures(videoId);
-            }, 100);
-        } else {
-            this.videoTextures[videoId] = new THREE.VideoTexture(
-                video as HTMLVideoElement
-            );
-        }
+        return 0;
     }
 
     /**
-     * Adds a texture layer to the screen
-     * @param texture the texture to add
-     * @param blending the blending mode
-     * @param opacity the opacity of the texture
-     * @param offset the offset of the texture, higher values are further from the screen
+     * Méthode supprimée car les textures vidéo ne sont plus utilisées
+     */
+
+    /**
+     * Méthode vide pour maintenir la compatibilité avec le reste du code
+     * Les couches de texture ne sont plus ajoutées
      */
     addTextureLayer(
         texture: THREE.Texture,
@@ -341,144 +282,31 @@ export default class MonitorScreen extends EventEmitter {
         opacity: number,
         offset: number
     ) {
-        // Create material
-        const material = new THREE.MeshBasicMaterial({
-            map: texture,
-            blending: blendingMode,
-            side: THREE.DoubleSide,
-            opacity,
-            transparent: true,
-        });
-
-        // Create geometry
-        const geometry = new THREE.PlaneGeometry(
-            this.screenSize.width,
-            this.screenSize.height
-        );
-
-        // Create mesh
-        const mesh = new THREE.Mesh(geometry, material);
-
-        // Copy position and apply the depth offset
-        mesh.position.copy(
-            this.offsetPosition(this.position, new THREE.Vector3(0, 0, offset))
-        );
-
-        // Copy rotation
-        mesh.rotation.copy(this.rotation);
-
-        this.scene.add(mesh);
+        // Ne rien faire - suppression des couches de texture
     }
 
     /**
-     * Creates enclosing planes for the computer screen
-     * @param maxOffset the maximum offset of the texture layers
+     * Méthode vide pour maintenir la compatibilité avec le reste du code
+     * Les plans d'encadrement ne sont plus nécessaires
      */
     createEnclosingPlanes(maxOffset: number) {
-        // Create planes, lots of boiler plate code here because I'm lazy
-        const planes = {
-            left: {
-                size: new THREE.Vector2(maxOffset, this.screenSize.height),
-                position: this.offsetPosition(
-                    this.position,
-                    new THREE.Vector3(
-                        -this.screenSize.width / 2,
-                        0,
-                        maxOffset / 2
-                    )
-                ),
-                rotation: new THREE.Euler(0, 90 * THREE.MathUtils.DEG2RAD, 0),
-            },
-            right: {
-                size: new THREE.Vector2(maxOffset, this.screenSize.height),
-                position: this.offsetPosition(
-                    this.position,
-                    new THREE.Vector3(
-                        this.screenSize.width / 2,
-                        0,
-                        maxOffset / 2
-                    )
-                ),
-                rotation: new THREE.Euler(0, 90 * THREE.MathUtils.DEG2RAD, 0),
-            },
-            top: {
-                size: new THREE.Vector2(this.screenSize.width, maxOffset),
-                position: this.offsetPosition(
-                    this.position,
-                    new THREE.Vector3(
-                        0,
-                        this.screenSize.height / 2,
-                        maxOffset / 2
-                    )
-                ),
-                rotation: new THREE.Euler(90 * THREE.MathUtils.DEG2RAD, 0, 0),
-            },
-            bottom: {
-                size: new THREE.Vector2(this.screenSize.width, maxOffset),
-                position: this.offsetPosition(
-                    this.position,
-                    new THREE.Vector3(
-                        0,
-                        -this.screenSize.height / 2,
-                        maxOffset / 2
-                    )
-                ),
-                rotation: new THREE.Euler(90 * THREE.MathUtils.DEG2RAD, 0, 0),
-            },
-        };
-
-        // Add each of the planes
-        for (const [_, plane] of Object.entries(planes)) {
-            this.createEnclosingPlane(plane);
-        }
+        // Ne rien faire - suppression des plans d'encadrement
     }
 
     /**
-     * Creates a plane for the enclosing planes
-     * @param plane the plane to create
+     * Méthode vide pour maintenir la compatibilité avec le reste du code
+     * Les plans d'encadrement ne sont plus créés
      */
     createEnclosingPlane(plane: EnclosingPlane) {
-        const material = new THREE.MeshBasicMaterial({
-            side: THREE.DoubleSide,
-            color: 0x48493f,
-        });
-
-        const geometry = new THREE.PlaneGeometry(plane.size.x, plane.size.y);
-        const mesh = new THREE.Mesh(geometry, material);
-
-        mesh.position.copy(plane.position);
-        mesh.rotation.copy(plane.rotation);
-
-        this.scene.add(mesh);
+        // Ne rien faire - suppression des plans d'encadrement
     }
 
+    /**
+     * Méthode vide pour maintenir la compatibilité avec le reste du code
+     * Le plan de gradation a été supprimé
+     */
     createPerspectiveDimmer(maxOffset: number) {
-        const material = new THREE.MeshBasicMaterial({
-            side: THREE.DoubleSide,
-            color: 0x000000,
-            transparent: true,
-            blending: THREE.AdditiveBlending,
-        });
-
-        const plane = new THREE.PlaneGeometry(
-            this.screenSize.width,
-            this.screenSize.height
-        );
-
-        const mesh = new THREE.Mesh(plane, material);
-
-        mesh.position.copy(
-            this.offsetPosition(
-                this.position,
-                new THREE.Vector3(0, 0, maxOffset - 5)
-            )
-        );
-
-        mesh.rotation.copy(this.rotation);
-
-        this.dimmingPlane = mesh;
-
-        this.scene.add(mesh);
+        // Ne rien faire - suppression du plan de gradation
     }
 
     /**
@@ -494,33 +322,11 @@ export default class MonitorScreen extends EventEmitter {
         return newPosition;
     }
 
+    /**
+     * Méthode vide pour maintenir la compatibilité avec le reste du code
+     * La mise à jour de l'opacité du plan de gradation a été désactivée
+     */
     update() {
-        if (this.dimmingPlane) {
-            const planeNormal = new THREE.Vector3(0, 0, 1);
-            const viewVector = new THREE.Vector3();
-            viewVector.copy(this.camera.instance.position);
-            viewVector.sub(this.position);
-            viewVector.normalize();
-
-            const dot = viewVector.dot(planeNormal);
-
-            // calculate the distance from the camera vector to the plane vector
-            const dimPos = this.dimmingPlane.position;
-            const camPos = this.camera.instance.position;
-
-            const distance = Math.sqrt(
-                (camPos.x - dimPos.x) ** 2 +
-                    (camPos.y - dimPos.y) ** 2 +
-                    (camPos.z - dimPos.z) ** 2
-            );
-
-            const opacity = 1 / (distance / 10000);
-
-            const DIM_FACTOR = 0.7;
-
-            // @ts-ignore
-            this.dimmingPlane.material.opacity =
-                (1 - opacity) * DIM_FACTOR + (1 - dot) * DIM_FACTOR;
-        }
+        // Ne rien faire - suppression des effets de gradation
     }
 }
