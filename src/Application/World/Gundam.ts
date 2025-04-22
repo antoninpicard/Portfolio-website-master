@@ -1,7 +1,9 @@
 import * as THREE from 'three';
 import { GLTFLoader } from 'three/examples/jsm/loaders/GLTFLoader.js';
+import { DRACOLoader } from 'three/examples/jsm/loaders/DRACOLoader.js'; // Pour la décompression optimisée
 import Application from '../Application';
 import Debug from '../Utils/Debug';
+import PerformanceMonitor from '../Utils/PerformanceMonitor';
 
 export default class Gundam {
     application: Application;
@@ -11,6 +13,17 @@ export default class Gundam {
     modelType: string;
     debug: Debug;
     debugFolder: any;
+    
+    // Moniteur de performance pour optimiser le chargement
+    performanceMonitor: PerformanceMonitor;
+    qualitySettings: any;
+    isLoading: boolean = false;
+    loadingManager: THREE.LoadingManager;
+    loadingProgress: number = 0;
+    loader: GLTFLoader;
+    
+    // Liste des modèles disponibles pour la sélection aléatoire
+    availableModels: string[] = ['rx78', 'rx0', 'rx93', 'rx93nu', 'gf', 'unicorn'];
     
     // Paramètres spécifiques pour chaque modèle
     modelSettings: {[key: string]: {
@@ -25,20 +38,87 @@ export default class Gundam {
         this.resources = this.application.resources;
         this.debug = this.application.debug;
         
+        // Initialiser le moniteur de performance
+        this.performanceMonitor = PerformanceMonitor.getInstance();
+        this.qualitySettings = this.performanceMonitor.getModelSettings();
+        
+        // S'abonner aux changements de qualité
+        this.performanceMonitor.on('qualityChanged', (newQualityLevel: string) => {
+            console.log(`Adaptation de la qualité du Gundam: ${newQualityLevel}`);
+            this.qualitySettings = this.performanceMonitor.getModelSettings();
+            this.updateModelQuality();
+        });
+        
+        // Initialiser le gestionnaire de chargement
+        this.setupLoadingManager();
+        
         // Initialiser les paramètres spécifiques pour chaque modèle
         this.initModelSettings();
         
         // Initialize debug controls if debug is active
         if(this.debug.active) {
             this.debugFolder = this.debug.ui.addFolder('Gundam');
+            
+            // Ajouter un contrôle pour le moniteur de performance dans le debug
+            const perfFolder = this.debugFolder.addFolder('Performance');            
+            perfFolder.add({ quality: this.performanceMonitor.getQualityLevel() }, 'quality')
+                .name('Niveau qualité')
+                .disable();
+                
+            // Afficher et mettre à jour le FPS
+            const fpsObject = { fps: 0 };
+            const fpsCtrl = perfFolder.add(fpsObject, 'fps')
+                .name('FPS')
+                .listen()
+                .disable();
+                
+            setInterval(() => {
+                fpsObject.fps = this.performanceMonitor.getFPS();
+            }, 500);
         }
         
         // Créer un cube temporaire pendant le chargement
         this.createReferenceCube();
         
-        // Randomly select a model type au démarrage uniquement
-        this.selectRandomModel();
-        this.loadGundamModel();
+        // Retarder légèrement le chargement du modèle pour laisser l'interface se charger d'abord
+        setTimeout(() => {
+            // Randomly select a model type au démarrage uniquement
+            this.selectRandomModel();
+            this.loadGundamModel();
+        }, 1000);
+    }
+    
+    /**
+     * Initialise le gestionnaire de chargement avec progression
+     */
+    setupLoadingManager() {
+        this.loadingManager = new THREE.LoadingManager();
+        
+        // Événements de chargement
+        this.loadingManager.onProgress = (url, loaded, total) => {
+            this.loadingProgress = Math.floor((loaded / total) * 100);
+            console.log(`Chargement du Gundam: ${this.loadingProgress}%`);
+        };
+        
+        this.loadingManager.onLoad = () => {
+            console.log('Chargement du Gundam terminé');
+            this.isLoading = false;
+        };
+        
+        this.loadingManager.onError = (url) => {
+            console.error(`Erreur de chargement: ${url}`);
+            this.isLoading = false;
+        };
+        
+        // Configurer le loader GLTF avec compression DRACO pour optimiser
+        this.loader = new GLTFLoader(this.loadingManager);
+        
+        // Optimisation: utiliser DRACO si disponible pour les appareils puissants
+        if (this.qualitySettings.geometryDetail > 0.5) {
+            const dracoLoader = new DRACOLoader();
+            dracoLoader.setDecoderPath('/draco/');
+            this.loader.setDRACOLoader(dracoLoader);
+        }
     }
     
     // Initialiser les paramètres spécifiques à chaque modèle
@@ -90,11 +170,19 @@ export default class Gundam {
     }
     
     selectRandomModel() {
-        // Available model types
-        const modelTypes = ['rx78', 'rx0', 'rx93', 'rx93nu', 'gf', 'unicorn'];
-        // Select random model type
-        this.modelType = modelTypes[Math.floor(Math.random() * modelTypes.length)];
-        console.log(`Selected Gundam model: ${this.modelType}`);
+        // Filtrer pour n'inclure que les modèles adaptés au niveau de performance
+        const maxModels = this.qualitySettings.maxModelsVisible;
+        let modelsToUse = [...this.availableModels];
+        
+        // Pour les appareils à basses performances, privilégier les modèles plus légers
+        if (maxModels <= 2) {
+            modelsToUse = ['rx78', 'rx93nu', 'unicorn']; // Les modèles plus légers
+        }
+        
+        const randomIndex = Math.floor(Math.random() * modelsToUse.length);
+        this.modelType = modelsToUse[randomIndex];
+        
+        console.log(`Modèle Gundam sélectionné au hasard: ${this.modelType}`);
     }
 
     loadGundamModel() {
@@ -158,10 +246,20 @@ export default class Gundam {
         const modelPath = this.modelType === 'unicorn' ? 
                          `/models/Gundam/gundam/${modelFile}` : 
                          `/models/Gundam/${this.modelType}/${modelFile}`;
-        const loader = new GLTFLoader();
         
-        // Chargement du modèle
-        loader.load(
+        // Vérifier si un modèle peut être chargé ou non selon les performances
+        const maxVisible = this.qualitySettings.maxModelsVisible;
+        const totalVisibleModels = this.countVisibleModels();
+        
+        if (totalVisibleModels >= maxVisible) {
+            console.warn(`Limite de modèles atteinte (${totalVisibleModels}/${maxVisible}). Optimisation en cours...`);
+            // Ne pas charger plus de modèles si la limite est atteinte
+            this.isLoading = false;
+            return;
+        }
+        
+        // Utiliser le loader optimisé avec le gestionnaire de chargement
+        this.loader.load(
             modelPath,
             (gltf) => {
                 console.log(`Modèle Gundam ${this.modelType} chargé avec succès!`);
@@ -174,32 +272,47 @@ export default class Gundam {
                 
                 this.model = gltf.scene;
                 
-                // Appliquer les paramètres spécifiques à ce modèle
+                // Appliquer les paramètres spécifiques à ce modèle, ajustés selon les performances
                 const settings = this.modelSettings[this.modelType];
+                const qualityFactor = this.qualitySettings.scale;
                 
-                // Appliquer l'échelle spécifique au modèle
-                this.model.scale.set(settings.scale, settings.scale, settings.scale);
+                // Appliquer l'échelle spécifique au modèle, adjustée selon les performances
+                const scaleFactor = settings.scale * qualityFactor;
+                this.model.scale.set(scaleFactor, scaleFactor, scaleFactor);
                 
                 // Appliquer la position spécifique au modèle
                 this.model.position.set(settings.position.x, settings.position.y, settings.position.z);
                 
                 // Appliquer la rotation spécifique au modèle
-                this.model.rotation.set(settings.rotation.x, settings.rotation.y, settings.rotation.z);
+                this.model.rotation.set(settings.rotation.x, settings.rotation.y * Math.PI/180, settings.rotation.z);
+                
+                // Optimisation: Simplifier la géométrie pour les appareils moins performants
+                if (this.qualitySettings.geometryDetail < 0.8) {
+                    console.log('Application d’optimisations de géométrie pour les performances...');
+                    this.optimizeGeometry();
+                }
                 
                 // Appliquer des couleurs différentes aux parties du Gundam
                 let partIndex = 0;
                 
-                // Appliquer le même traitement de texture que pour le chat
+                // Appliquer le même traitement de texture que pour le chat mais optimisé selon les performances
                 this.model.traverse((node: THREE.Object3D) => {
                     if (node instanceof THREE.Mesh) {
                         const mesh = node as THREE.Mesh;
                         
-                        // Traiter les matériaux exactement comme pour le chat
+                        // Traiter les matériaux en tenant compte des performances
                         if (Array.isArray(mesh.material)) {
                             // Pour les mesh avec plusieurs matériaux
                             mesh.material = mesh.material.map((mat) => {
                                 // Récupérer la texture du matériau si elle existe
                                 const texture = mat instanceof THREE.MeshStandardMaterial ? mat.map : null;
+                                
+                                // Si texture et qualité des textures réduite, optimiser
+                                if (texture && this.qualitySettings.textureQuality < 1.0) {
+                                    // Réduire la qualité des textures
+                                    texture.minFilter = THREE.LinearFilter;
+                                    texture.anisotropy = 1; // Réduire l'anisotropie
+                                }
                                 
                                 // Créer un MeshBasicMaterial indépendant de l'éclairage avec la texture
                                 return new THREE.MeshBasicMaterial({
@@ -216,6 +329,12 @@ export default class Gundam {
                                            (existingMaterial instanceof THREE.MeshBasicMaterial ? 
                                             existingMaterial.map : null);
                             
+                            // Optimiser la texture si nécessaire
+                            if (texture && this.qualitySettings.textureQuality < 1.0) {
+                                texture.minFilter = THREE.LinearFilter;
+                                texture.anisotropy = 1;
+                            }
+                            
                             // Pour les mesh avec un seul matériau, comme le chat
                             mesh.material = new THREE.MeshBasicMaterial({
                                 map: texture,
@@ -224,115 +343,68 @@ export default class Gundam {
                             });
                         }
                         
-                        // Activer les ombres comme pour le chat
-                        mesh.castShadow = true;
-                        mesh.receiveShadow = true;
+                        // Activer les ombres seulement si la qualité le permet
+                        mesh.castShadow = this.qualitySettings.enableShadows;
+                        mesh.receiveShadow = this.qualitySettings.enableShadows;
                     }
                 });
+                
+                // Optimiser la scène avec frustum culling pour les objets lointains
+                this.model.traverse((node: THREE.Object3D) => {
+                    // Désactiver le culling seulement pour les gros objets
+                    if (node instanceof THREE.Mesh && node.geometry.boundingSphere && 
+                        node.geometry.boundingSphere.radius > 50) {
+                        node.frustumCulled = true;
+                    }
+                });
+                
+                // Mise à jour des optimisations basées sur les performances
+                this.updateModelQuality();
                 
                 // Ajouter à la scène
                 this.scene.add(this.model);
                 
-                // Add debug controls if available
-                if(this.debug.active && this.debugFolder) {
-                    // Vider le dossier de debug précédent
-                    this.debugFolder.destroy();
-                    this.debugFolder = this.debug.ui.addFolder(`Gundam ${this.modelType.toUpperCase()}`);
-                    
-                    // Position
-                    const posFolder = this.debugFolder.addFolder('Position');
-                    posFolder.add(this.model.position, 'x')
-                        .name('X Position')
-                        .min(-5000)
-                        .max(5000)
-                        .step(10)
-                        .onChange((value: number) => {
-                            // Sauvegarder les modifications dans les paramètres
-                            this.modelSettings[this.modelType].position.x = value;
-                        });
-                    
-                    posFolder.add(this.model.position, 'y')
-                        .name('Y Position')
-                        .min(-5000)
-                        .max(0)
-                        .step(10)
-                        .onChange((value: number) => {
-                            this.modelSettings[this.modelType].position.y = value;
-                        });
-                    
-                    posFolder.add(this.model.position, 'z')
-                        .name('Z Position')
-                        .min(-5000)
-                        .max(5000)
-                        .step(10)
-                        .onChange((value: number) => {
-                            this.modelSettings[this.modelType].position.z = value;
-                        });
-                    
-                    // Rotation
-                    const rotFolder = this.debugFolder.addFolder('Rotation');
-                    rotFolder.add(this.model.rotation, 'x')
-                        .name('X Rotation')
-                        .min(-Math.PI)
-                        .max(Math.PI)
-                        .step(0.1)
-                        .onChange((value: number) => {
-                            this.modelSettings[this.modelType].rotation.x = value;
-                        });
-                    
-                    rotFolder.add(this.model.rotation, 'y')
-                        .name('Y Rotation')
-                        .min(-Math.PI)
-                        .max(Math.PI)
-                        .step(0.1)
-                        .onChange((value: number) => {
-                            this.modelSettings[this.modelType].rotation.y = value;
-                        });
-                    
-                    rotFolder.add(this.model.rotation, 'z')
-                        .name('Z Rotation')
-                        .min(-Math.PI)
-                        .max(Math.PI)
-                        .step(0.1)
-                        .onChange((value: number) => {
-                            this.modelSettings[this.modelType].rotation.z = value;
-                        });
-                    
-                    // Scale
-                    const scaleCtrl = this.debugFolder.add(this.modelSettings[this.modelType], 'scale')
-                        .name('Scale')
-                        .min(100)
-                        .max(1000)
-                        .step(10)
-                        .onChange((value: number) => {
-                            this.model.scale.set(value, value, value);
-                        });
-                }
+                // Désactiver le status de chargement
+                this.isLoading = false;
             },
-            (progress) => {
-                // Afficher la progression du chargement
-                if (progress.lengthComputable) {
-                    const percentage = (progress.loaded / progress.total) * 100;
-                    console.log(`Progression du chargement: ${percentage.toFixed(2)}%`);
-                }
-            },
+            // Progress callback - géré par le loadingManager
+            undefined,
             (error) => {
                 console.error(`Erreur de chargement du modèle Gundam ${this.modelType}:`, error);
                 console.log('Le cube bleu restera visible puisque le modèle n\'a pas pu être chargé');
                 
-                // Try loading a fallback model
+                // Libérer le statut de chargement
+                this.isLoading = false;
+                
+                // Try loading a fallback model (plus léger)
                 if(this.modelType !== 'rx78') {
                     console.log('Tentative de chargement du modèle de secours...');
                     this.modelType = 'rx78';
-                    this.loadGundamModel();
+                    setTimeout(() => {
+                        this.loadGundamModel();
+                    }, 1000); // Délai pour éviter les requêtes en cascade
                 }
             }
         );
     }
     
-
+    /**
+     * Compte le nombre de modèles 3D visibles dans la scène
+     */
+    countVisibleModels(): number {
+        let count = 0;
+        this.scene.traverse((object) => {
+            // Compter seulement les grands groupes d'objets (modèles)
+            if (object instanceof THREE.Group && object.children.length > 5) {
+                count++;
+            }
+        });
+        return count;
+    }
     
-    // Compter le nombre de mesh dans un modèle
+    /**
+     * Compter le nombre de mesh dans un modèle
+     */
     countMeshes(model: THREE.Group | null): number {
         let count = 0;
         if (!model) return count;
@@ -344,6 +416,38 @@ export default class Gundam {
         });
         
         return count;
+    }
+    
+    /**
+     * Optimise la géométrie des modèles pour les appareils moins performants
+     */
+    optimizeGeometry(): void {
+        if (!this.model) return;
+        
+        this.model.traverse((node: THREE.Object3D) => {
+            if (node instanceof THREE.Mesh && node.geometry) {
+                // Simplifier les géométries complexes
+                if (node.geometry instanceof THREE.BufferGeometry) {
+                    // Simplification: supprimer les attributs non essentiels
+                    const geom = node.geometry;
+                    
+                    // Supprimer les normales si faible qualité
+                    if (this.qualitySettings.geometryDetail < 0.5 && geom.getAttribute('normal')) {
+                        geom.deleteAttribute('normal');
+                    }
+                    
+                    // Supprimer les tangentes (utilisées pour les normal maps)
+                    if (geom.getAttribute('tangent')) {
+                        geom.deleteAttribute('tangent');
+                    }
+                    
+                    // Supprimer les UV2 (utilisés pour l'AO)
+                    if (geom.getAttribute('uv2')) {
+                        geom.deleteAttribute('uv2');
+                    }
+                }
+            }
+        });
     }
     
     // Les touches n/0-6 pour changer de modèle sont désactivées
@@ -396,7 +500,98 @@ export default class Gundam {
         this.loadGundamModel();
     }
     
+    /**
+     * Met à jour la qualité du modèle en fonction des paramètres de performance
+     */
+    updateModelQuality(): void {
+        if (!this.model) return;
+        
+        // Appliquer les réglages de qualité au modèle existant
+        const settings = this.modelSettings[this.modelType];
+        const qualityFactor = this.qualitySettings.scale;
+        
+        // Ajuster l'échelle selon les performances
+        const newScale = settings.scale * qualityFactor;
+        this.model.scale.set(newScale, newScale, newScale);
+        
+        // Activer/désactiver les ombres selon les performances
+        this.model.traverse((node: THREE.Object3D) => {
+            if (node instanceof THREE.Mesh) {
+                node.castShadow = this.qualitySettings.enableShadows;
+                node.receiveShadow = this.qualitySettings.enableShadows;
+                
+                // Ajuster la qualité des matériaux
+                if (Array.isArray(node.material)) {
+                    node.material.forEach(mat => {
+                        if (mat instanceof THREE.MeshBasicMaterial) {
+                            // Rien à faire pour MeshBasicMaterial
+                        }
+                    });
+                }
+            }
+        });
+        
+        console.log(`Qualité du modèle Gundam ajustée: échelle=${newScale}, ombres=${this.qualitySettings.enableShadows}`);
+    }
+    
+    /**
+     * Libère les ressources pour optimiser les performances après avoir changé de vue ou de modèle
+     */
+    disposeResources(): void {
+        // Ne pas essayer de libérer les ressources s'il n'y a pas de modèle
+        if (!this.model) return;
+        
+        // Supprimer le modèle de la scène
+        this.scene.remove(this.model);
+        
+        // Libérer les ressources GPU
+        this.model.traverse((node: THREE.Object3D) => {
+            if (node instanceof THREE.Mesh) {
+                if (node.geometry) {
+                    node.geometry.dispose();
+                }
+                
+                // Libérer les matériaux
+                if (Array.isArray(node.material)) {
+                    node.material.forEach(material => {
+                        material.dispose();
+                        // Libérer les textures
+                        if (material instanceof THREE.MeshBasicMaterial && material.map) {
+                            material.map.dispose();
+                        }
+                    });
+                } else if (node.material) {
+                    node.material.dispose();
+                    // Libérer les textures
+                    if (node.material instanceof THREE.MeshBasicMaterial && node.material.map) {
+                        node.material.map.dispose();
+                    }
+                }
+            }
+        });
+        
+        // Forcer le garbage collector à s'exécuter (si possible)
+        if (window.gc) {
+            try {
+                window.gc();
+            } catch (e) {
+                console.log('Nettoyage mémoire suggéré');
+            }
+        }
+        
+        console.log('Ressources du modèle Gundam libérées');
+    }
+    
+    // Mettre à jour le Gundam (appelé à chaque frame par World)
     update() {
         // Pas de rotation automatique comme demandé
+        
+        // Performance: mettre à jour les contrôles d'optimisation uniquement si nécessaire
+        if (this.model && this.performanceMonitor.getFPS() < 30 && !this.qualitySettings.optimized) {
+            // Si les FPS chutent et que nous n'avons pas encore optimisé
+            this.qualitySettings.optimized = true;
+            this.updateModelQuality();
+            console.log('Optimisation dynamique du modèle Gundam appliquée');
+        }
     }
 }
