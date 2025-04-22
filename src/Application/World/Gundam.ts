@@ -82,7 +82,7 @@ export default class Gundam {
         
         // Retarder légèrement le chargement du modèle pour laisser l'interface se charger d'abord
         setTimeout(() => {
-            // Randomly select a model type au démarrage uniquement
+            // Sélection aléatoire du modèle
             this.selectRandomModel();
             this.loadGundamModel();
         }, 1000);
@@ -170,17 +170,9 @@ export default class Gundam {
     }
     
     selectRandomModel() {
-        // Filtrer pour n'inclure que les modèles adaptés au niveau de performance
-        const maxModels = this.qualitySettings.maxModelsVisible;
-        let modelsToUse = [...this.availableModels];
-        
-        // Pour les appareils à basses performances, privilégier les modèles plus légers
-        if (maxModels <= 2) {
-            modelsToUse = ['rx78', 'rx93nu', 'unicorn']; // Les modèles plus légers
-        }
-        
-        const randomIndex = Math.floor(Math.random() * modelsToUse.length);
-        this.modelType = modelsToUse[randomIndex];
+        // Sélection aléatoire parmi tous les modèles disponibles
+        const randomIndex = Math.floor(Math.random() * this.availableModels.length);
+        this.modelType = this.availableModels[randomIndex];
         
         console.log(`Modèle Gundam sélectionné au hasard: ${this.modelType}`);
     }
