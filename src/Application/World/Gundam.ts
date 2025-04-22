@@ -125,9 +125,9 @@ export default class Gundam {
     initModelSettings() {
         this.modelSettings = {
             'rx78': { // RX-78-NT-1 Gundam Alex
-                position: {x: -3000, y: -450, z: 700},
-                rotation: {x: 0, y: -50, z: 0},
-                scale: 400
+                position: {x: -3100, y: -450, z: 700},
+                rotation: {x: 0, y: 30, z: 0},
+                scale: 550
             },
             'rx0': { // RX-0 Full Armor Unicorn Gundam
                 position: {x: -2800, y: -3000, z: 2800},
@@ -151,7 +151,7 @@ export default class Gundam {
             },
             'unicorn': { // Gundam Unicorn
                 position: {x: -3000, y: -450, z: 900},
-                rotation: {x: 0, y: -50, z: 0},
+                rotation: {x: 0, y: 30, z: 0},
                 scale: 6
             }
         };
