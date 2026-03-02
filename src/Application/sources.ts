@@ -22,7 +22,7 @@ const sources: Resource[] = [
     {
         name: 'decorModel',
         type: 'gltfModel',
-        path: 'models/Decor/decor.glb',
+        path: 'models/Decor/old.glb',
     },
     {
         name: 'decorTexture',

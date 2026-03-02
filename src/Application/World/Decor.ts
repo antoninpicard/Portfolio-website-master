@@ -27,6 +27,12 @@ export default class Decor {
     }
 
     setModel() {
-        this.scene.add(this.bakedModel.getModel());
+        const model = this.bakedModel.getModel();
+        model.traverse((child) => {
+            if (child.name === 'paper') {
+                child.visible = false;
+            }
+        });
+        this.scene.add(model);
     }
 }

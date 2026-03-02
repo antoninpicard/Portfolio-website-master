@@ -18,20 +18,14 @@ export default class MovingObject {
     
     // Animation ranges (frames)
     animationRanges: {[key: string]: {start: number, end: number}} = {
-        'IdleSit': { start: 300, end: 465 },
         'IdleLayDown': { start: 470, end: 630 },
         'IdleSleep': { start: 635, end: 755 },
-        'LickPaw': { start: 1030, end: 1150 },
-        'Stretch': { start: 1240, end: 1370 },
-    };
+        };
     
     // Liste des animations disponibles (pour pouvoir les parcourir facilement)
     availableAnimations: string[] = [
-        'IdleSit',
         'IdleLayDown',
         'IdleSleep',
-        'LickPaw',
-        'Stretch'
     ];
     
     // Mode de sélection d'animation (manuel ou aléatoire)
@@ -44,35 +38,17 @@ export default class MovingObject {
         scale: number,
         speed: number  // Facteur de vitesse pour l'animation (1.0 = vitesse normale)
     }} = {
-        'IdleSit': { 
-            position: {x: -1600, y: -100, z: 0},
-            rotation: {x: Math.PI, y: 0, z: 0},
-            scale: 1700,
-            speed: 0.5
-        },
         'IdleLayDown': { 
             position: {x: 0, y: 1220, z: 150},
-            rotation: {x: Math.PI, y: -60, z: 0}, // -60 degrés sur Y
+            rotation: {x: Math.PI, y: -60, z: 0},
             scale: 1700,
             speed: 0.5
         },
         'IdleSleep': { 
             position: {x: 0, y: 1610, z: 100},
-            rotation: {x: Math.PI, y: -60, z: 0}, // -60 degrés sur Y
+            rotation: {x: Math.PI, y: -60, z: 0},
             scale: 1700,
             speed: 0.5
-        },
-        'LickPaw': { 
-            position: {x: -1600, y: -100, z: 0},
-            rotation: {x: Math.PI, y: 0, z: 0},
-            scale: 1700,
-            speed: 0.5  // Un peu plus lent pour l'action de toilettage
-        },
-        'Stretch': { 
-            position: {x: -2250, y: -450, z: 100},
-            rotation: {x: Math.PI, y: 0, z: 0}, // Légèrement vers l'avant pour l'étirement
-            scale: 1700,
-            speed: 0.5  // Lent pour un étirement détendu
         },
     };
     
