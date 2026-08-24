@@ -50,6 +50,7 @@
     },
     "devDependencies": {
         "@babel/preset-typescript": "^7.16.7",
+        "@types/node": "^16.18.126",
         "@types/react": "^17.0.43",
         "@types/react-dom": "^17.0.14",
         "@types/stats.js": "^0.17.0",
