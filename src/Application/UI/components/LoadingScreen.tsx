@@ -20,15 +20,14 @@ const LoadingScreen: React.FC<LoadingProps> = () => {
     const [resources] = useState<string[]>([]);
     const [mobileWarning, setMobileWarning] = useState(window.innerWidth < 768);
 
-    const onResize = () => {
-        if (window.innerWidth < 768) {
-            setMobileWarning(true);
-        } else {
-            setMobileWarning(false);
-        }
-    };
+    useEffect(() => {
+        const onResize = () => {
+            setMobileWarning(window.innerWidth < 768);
+        };
 
-    window.addEventListener('resize', onResize);
+        window.addEventListener('resize', onResize);
+        return () => window.removeEventListener('resize', onResize);
+    }, []);
 
     useEffect(() => {
         const urlParams = new URLSearchParams(window.location.search);
