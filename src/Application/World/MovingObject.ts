@@ -40,13 +40,13 @@ export default class MovingObject {
         speed: number  // Facteur de vitesse pour l'animation (1.0 = vitesse normale)
     }} = {
         'IdleLayDown': { 
-            position: {x: 0, y: 1220, z: 150},
+            position: {x: 0, y: 1300, z: 60},
             rotation: {x: Math.PI, y: -60, z: 0},
             scale: 1700,
             speed: 0.5
         },
-        'IdleSleep': { 
-            position: {x: 0, y: 1610, z: 100},
+        'IdleSleep': {
+            position: {x: 0, y: 1700, z: 100},
             rotation: {x: Math.PI, y: -60, z: 0},
             scale: 1700,
             speed: 0.5
