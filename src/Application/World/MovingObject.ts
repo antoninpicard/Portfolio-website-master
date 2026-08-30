@@ -2,6 +2,7 @@ import * as THREE from 'three';
 import { GLTFLoader } from 'three/examples/jsm/loaders/GLTFLoader.js';
 import Application from '../Application';
 import { TextureLoader, AnimationMixer, AnimationClip, AnimationAction, LoopRepeat } from 'three';
+import getDracoLoader from '../Utils/dracoLoader';
 
 export default class MovingObject {
     application: Application;
@@ -104,26 +105,23 @@ export default class MovingObject {
         
         // Charger les textures en premier
         const textureLoader = new TextureLoader();
-        const baseColorTexturePath = '/models/Cat/textures/Cat_Shorthair_baseColor.png';
-        const normalTexturePath = '/models/Cat/textures/Cat_Shorthair_normal.png';
-        
-        console.log(`Chargement des textures: ${baseColorTexturePath} et ${normalTexturePath}`);
-        
+        const baseColorTexturePath = '/models/Cat/textures/Cat_Shorthair_baseColor.jpg';
+
+        console.log(`Chargement des textures: ${baseColorTexturePath}`);
+
         // Pré-charger les textures
         const baseColorTexture = textureLoader.load(baseColorTexturePath);
-        const normalTexture = textureLoader.load(normalTexturePath);
-        
+
         // Configurer les textures
         baseColorTexture.encoding = THREE.sRGBEncoding;
         baseColorTexture.flipY = false; // Important pour les modèles GLTF
-        
-        normalTexture.flipY = false;
-        
+
         // Ensuite charger le modèle
-        const modelPath = '/models/Cat/scene.gltf';
+        const modelPath = '/models/Cat/scene.glb';
         console.log(`Chargement du modèle: ${modelPath}`);
-        
+
         const loader = new GLTFLoader();
+        loader.setDRACOLoader(getDracoLoader());
         
         // Charger le modèle avec le chemin absolu
         loader.load(
