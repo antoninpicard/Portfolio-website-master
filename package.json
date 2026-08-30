@@ -54,6 +54,7 @@
         "@types/react": "^17.0.43",
         "@types/react-dom": "^17.0.14",
         "@types/stats.js": "^0.17.0",
-        "@types/three": "^0.138.0"
+        "@types/three": "^0.138.0",
+        "compression-webpack-plugin": "^12.0.0"
     }
 }

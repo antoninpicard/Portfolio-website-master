@@ -4,6 +4,7 @@ import Application from '../Application';
 import UIEventBus from '../UI/EventBus';
 import EventEmitter from './EventEmitter';
 import Loading from './Loading';
+import getDracoLoader from './dracoLoader';
 
 export default class Resources extends EventEmitter {
     sources: Resource[];
@@ -41,8 +42,11 @@ export default class Resources extends EventEmitter {
     }
 
     setLoaders() {
+        const gltfLoader = new GLTFLoader();
+        gltfLoader.setDRACOLoader(getDracoLoader());
+
         this.loaders = {
-            gltfLoader: new GLTFLoader(),
+            gltfLoader,
             textureLoader: new THREE.TextureLoader(),
             cubeTextureLoader: new THREE.CubeTextureLoader(),
             audioLoader: new THREE.AudioLoader(),

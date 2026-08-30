@@ -1,6 +1,7 @@
 import * as THREE from 'three';
 import { GLTFLoader } from 'three/examples/jsm/loaders/GLTFLoader.js';
 import Application from '../Application';
+import getDracoLoader from '../Utils/dracoLoader';
 
 export default class RoboticArm {
     application: Application;
@@ -24,6 +25,7 @@ export default class RoboticArm {
 
     loadModel() {
         const loader = new GLTFLoader();
+        loader.setDRACOLoader(getDracoLoader());
         loader.load(
             '/models/RoboticArm/robotic_arm.glb',
             (gltf) => {

@@ -14,6 +14,7 @@ module.exports = merge(
     {
         stats: 'errors-warnings',
         mode: 'development',
+        devtool: 'eval-cheap-module-source-map',
         infrastructureLogging:
         {
             level: 'warn',
@@ -25,8 +26,8 @@ module.exports = merge(
             open: true,
             https: false,
             allowedHosts: 'all',
-            hot: false,
-            watchFiles: ['src/**', 'static/**'],
+            hot: true,
+            watchFiles: ['src/**'],
             static:
             {
                 watch: true,
